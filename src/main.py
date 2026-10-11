@@ -7,9 +7,9 @@ import socket
 
 def get_prompt():
   """Создать приглашение из данных текущей OC"""
-   username = getpass.getuser()
-   hostname = socket.gethostname()
-   return f"{username}@{hostname}:~$ "
+  username = getpass.getuser()
+  hostname = socket.gethostname()
+  return f"{username}@{hostname}:~$ "
 
 def expand_variables(text):
   """Раскрыть переменные окружения вида $NAME"""
