@@ -17,7 +17,7 @@ def expand_variables(text):
 
   def replace_variable(match):
       name = match.group(1)
-  return os.environ.get(name, "")
+      return os.environ.get(name, "")
         
   return re.sub(pattern, replace_variable, text)
 
