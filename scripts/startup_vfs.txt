@@ -1,0 +1,5 @@
+ls
+cd documents
+ls $USERNAME
+vfs-save output/saved_vfs
+exit
