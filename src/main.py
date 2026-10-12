@@ -8,6 +8,8 @@ import re
 import socket
 import sys
 
+from vfs import VirtualFileSystem
+
 
 def get_prompt():
     """Сформировать приглашение из данных ОС. 1"""
@@ -28,8 +30,28 @@ def expand_variables(text):
     return re.sub(pattern, replace_variable, text)
 
 
-def process_command(line):
-    """Обработать команду и вернуть статусы. 2"""
+def save_vfs_command(arguments, vfs):
+    """Выполнить команду сохранения VFS. 3"""
+    if len(arguments) != 1:
+        print("vfs-save: требуется один аргумент — путь")
+        return False
+
+    if vfs is None:
+        print("vfs-save: виртуальная система не загружена")
+        return False
+
+    try:
+        vfs.save(arguments[0])
+    except (OSError, ValueError) as error:
+        print(f"vfs-save: ошибка: {error}")
+        return False
+
+    print(f"VFS сохранена: {arguments[0]}")
+    return True
+
+
+def process_command(line, vfs=None):
+    """Обработать команду и вернуть статусы. 2-3"""
     expanded = expand_variables(line)
     parts = expanded.split()
 
@@ -49,6 +71,9 @@ def process_command(line):
         print(f"ls: аргументы = {arguments}")
     elif command == "cd":
         print(f"cd: аргументы = {arguments}")
+    elif command == "vfs-save":
+        success = save_vfs_command(arguments, vfs)
+        return True, success
     else:
         print(f"{command}: команда не найдена")
         return True, False
@@ -56,9 +81,9 @@ def process_command(line):
     return True, True
 
 
-def execute_command(line):
-    """Выполнить команду в интерактивном режиме. 1-2"""
-    continue_running, _ = process_command(line)
+def execute_command(line, vfs=None):
+    """Выполнить команду в интерактивном режиме. 1-3"""
+    continue_running, _ = process_command(line, vfs)
     return continue_running
 
 
@@ -126,8 +151,22 @@ def print_settings(settings):
     print(f"Конфигурация: {settings['config_path']}")
 
 
-def run_startup_script(path):
-    """Выполнить стартовый скрипт до первой ошибки. 2"""
+def load_vfs(path):
+    """Загрузить VFS из директории. 3"""
+    if not path:
+        return None
+
+    vfs = VirtualFileSystem(path)
+    info = vfs.get_info()
+
+    print("Виртуальная файловая система загружена")
+    print(f"Файлов: {info['files']}")
+    print(f"Директорий: {info['directories']}")
+    return vfs
+
+
+def run_startup_script(path, vfs=None):
+    """Выполнить стартовый скрипт до ошибки. 2-3"""
     if not path:
         return True, True
 
@@ -140,7 +179,9 @@ def run_startup_script(path):
             continue
 
         print(f"{get_prompt()}{command}")
-        continue_running, success = process_command(command)
+        continue_running, success = process_command(
+            command, vfs
+        )
 
         if not success:
             print("Ошибка выполнения стартового скрипта")
@@ -152,8 +193,8 @@ def run_startup_script(path):
     return True, True
 
 
-def interactive_mode():
-    """Запустить интерактивный режим. 2"""
+def interactive_mode(vfs=None):
+    """Запустить интерактивный режим. 2-3"""
     while True:
         try:
             line = input(get_prompt())
@@ -161,30 +202,31 @@ def interactive_mode():
             print()
             break
 
-        if not execute_command(line):
+        if not execute_command(line, vfs):
             break
 
 
 def main(argv=None):
-    """Запустить эмулятор с конфигурацией. 1-2"""
+    """Запустить эмулятор с конфигурацией и VFS. 1-3"""
     args = parse_arguments(argv)
 
     try:
         settings = get_settings(args)
         print_settings(settings)
 
+        vfs = load_vfs(settings["vfs_path"])
         success, continue_running = run_startup_script(
-            settings["startup_script"]
+            settings["startup_script"], vfs
         )
     except (OSError, ValueError) as error:
-        print(f"Ошибка конфигурации или скрипта: {error}")
+        print(f"Ошибка загрузки или выполнения: {error}")
         return 1
 
     if not success:
         return 1
 
     if continue_running:
-        interactive_mode()
+        interactive_mode(vfs)
 
     return 0
 
