@@ -1,0 +1,4 @@
+ls
+cd documents
+vfs-save
+ls after_error
