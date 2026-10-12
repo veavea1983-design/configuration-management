@@ -1,0 +1,4 @@
+{
+  "vfs_path": "data/vfs",
+  "startup_script": "scripts/startup.txt"
+}
