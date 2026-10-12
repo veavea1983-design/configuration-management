@@ -1,0 +1,4 @@
+ls
+cd documents
+unknown_command
+ls after_error
