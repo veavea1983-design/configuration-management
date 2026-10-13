@@ -4,13 +4,14 @@ from pathlib import Path
 
 
 class VirtualFileSystem:
-    """Хранить виртуальные файлы в памяти. 3"""
+    """Хранить виртуальные файлы в памяти. 3-4"""
 
     def __init__(self, source_path):
-        """Создать VFS и загрузить директорию. 3"""
+        """Создать VFS и текущий каталог. 3-4"""
         self.source_path = Path(source_path).resolve()
         self.directories = set()
         self.files = {}
+        self.current_directory = Path(".")
         self.load()
 
     def load(self):
@@ -46,6 +47,103 @@ class VirtualFileSystem:
                 raise ValueError(
                     f"Неподдерживаемый элемент VFS: {relative_path}"
                 )
+
+    def resolve_path(self, path):
+        """Преобразовать виртуальный путь в относительный. 4"""
+        raw_path = str(path).replace("\\", "/")
+
+        if raw_path.startswith("/"):
+            parts = []
+        elif self.current_directory == Path("."):
+            parts = []
+        else:
+            parts = list(self.current_directory.parts)
+
+        for part in raw_path.split("/"):
+            if part in ("", "."):
+                continue
+
+            if part == "..":
+                if parts:
+                    parts.pop()
+            else:
+                parts.append(part)
+
+        return Path(*parts) if parts else Path(".")
+
+    def require_directory(self, path):
+        """Проверить существование каталога VFS. 4"""
+        target = self.resolve_path(path)
+
+        if target in self.files:
+            raise NotADirectoryError(f"Не каталог: {path}")
+
+        if target not in self.directories:
+            raise FileNotFoundError(f"Каталог не найден: {path}")
+
+        return target
+
+    def change_directory(self, path):
+        """Изменить текущую виртуальную директорию. 4"""
+        target = self.require_directory(path)
+        self.current_directory = target
+
+    def list_directory(self, path="."):
+        """Получить содержимое виртуального каталога. 4"""
+        target = self.require_directory(path)
+        names = []
+
+        for directory in self.directories:
+            if directory != target and directory.parent == target:
+                names.append(directory.name + "/")
+
+        for file_path in self.files:
+            if file_path.parent == target:
+                names.append(file_path.name)
+
+        return sorted(names)
+
+    def get_current_path(self):
+        """Получить абсолютный виртуальный путь. 4"""
+        if self.current_directory == Path("."):
+            return "/"
+
+        return "/" + self.current_directory.as_posix()
+
+    def build_tree_lines(self, directory, prefix=""):
+        """Сформировать строки дерева каталогов. 4"""
+        entries = self.list_directory(
+            "/" + directory.as_posix()
+            if directory != Path(".") else "/"
+        )
+        lines = []
+
+        for index, name in enumerate(entries):
+            last = index == len(entries) - 1
+            branch = "└── " if last else "├── "
+            lines.append(prefix + branch + name)
+
+            if name.endswith("/"):
+                child = directory / name.rstrip("/")
+                extension = "    " if last else "│   "
+                lines.extend(
+                    self.build_tree_lines(child, prefix + extension)
+                )
+
+        return lines
+
+    def render_tree(self, path="."):
+        """Построить дерево виртуальных файлов. 4"""
+        target = self.require_directory(path)
+
+        if target == Path("."):
+            title = "/"
+        else:
+            title = target.name + "/"
+
+        lines = [title]
+        lines.extend(self.build_tree_lines(target))
+        return "\n".join(lines)
 
     def save(self, destination):
         """Сохранить состояние VFS на диск. 3"""
