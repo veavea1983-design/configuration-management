@@ -145,6 +145,33 @@ class VirtualFileSystem:
         lines.extend(self.build_tree_lines(target))
         return "\n".join(lines)
 
+    def touch_file(self, path):
+        """Создать пустой файл в памяти VFS. 5"""
+        target = self.resolve_path(path)
+
+        if target == Path(".") or target in self.directories:
+            raise IsADirectoryError(f"Это каталог: {path}")
+
+        if target.parent not in self.directories:
+            raise FileNotFoundError(
+                f"Родительский каталог не найден: {path}"
+            )
+
+        if target not in self.files:
+            self.files[target] = b""
+
+    def remove_file(self, path):
+        """Удалить файл из памяти VFS. 5"""
+        target = self.resolve_path(path)
+
+        if target in self.directories:
+            raise IsADirectoryError(f"Это каталог: {path}")
+
+        if target not in self.files:
+            raise FileNotFoundError(f"Файл не найден: {path}")
+
+        del self.files[target]
+
     def save(self, destination):
         """Сохранить состояние VFS на диск. 3"""
         target = Path(destination).resolve()
