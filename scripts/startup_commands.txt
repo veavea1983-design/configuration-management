@@ -1,0 +1,16 @@
+ls
+tree
+uname
+cd home
+ls
+cd user
+ls
+tree
+cd docs
+ls
+cd ..
+cd /
+tree /home
+clear
+ls /home/user
+exit
