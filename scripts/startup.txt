@@ -1,4 +1,4 @@
 ls
-cd documents
+cd /
 ls $USERNAME
 exit
