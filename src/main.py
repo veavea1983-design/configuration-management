@@ -4,6 +4,7 @@ import argparse
 import getpass
 import json
 import os
+import platform
 import re
 import socket
 import sys
@@ -50,8 +51,116 @@ def save_vfs_command(arguments, vfs):
     return True
 
 
+def ls_command(arguments, vfs):
+    """Вывести содержимое виртуального каталога. 4"""
+    if len(arguments) > 1:
+        print("ls: слишком много аргументов")
+        return False
+
+    if vfs is None:
+        print(f"ls: аргументы = {arguments}")
+        return True
+
+    path = arguments[0] if arguments else "."
+
+    try:
+        for name in vfs.list_directory(path):
+            print(name)
+    except (OSError, ValueError) as error:
+        print(f"ls: {error}")
+        return False
+
+    return True
+
+
+def cd_command(arguments, vfs):
+    """Перейти в виртуальный каталог. 4"""
+    if len(arguments) > 1:
+        print("cd: слишком много аргументов")
+        return False
+
+    if vfs is None:
+        print(f"cd: аргументы = {arguments}")
+        return True
+
+    path = arguments[0] if arguments else "/"
+
+    try:
+        vfs.change_directory(path)
+    except (OSError, ValueError) as error:
+        print(f"cd: {error}")
+        return False
+
+    return True
+
+
+def clear_command(arguments):
+    """Очистить экран терминала. 4"""
+    if arguments:
+        print("clear: аргументы не поддерживаются")
+        return False
+
+    print("\033[2J\033[H", end="")
+    return True
+
+
+def uname_command(arguments):
+    """Вывести название операционной системы. 4"""
+    if arguments:
+        print("uname: аргументы не поддерживаются")
+        return False
+
+    print(platform.system())
+    return True
+
+
+def tree_command(arguments, vfs):
+    """Вывести дерево виртуальной файловой системы. 4"""
+    if len(arguments) > 1:
+        print("tree: слишком много аргументов")
+        return False
+
+    if vfs is None:
+        print("tree: виртуальная система не загружена")
+        return False
+
+    path = arguments[0] if arguments else "."
+
+    try:
+        print(vfs.render_tree(path))
+    except (OSError, ValueError) as error:
+        print(f"tree: {error}")
+        return False
+
+    return True
+
+
+def run_shell_command(command, arguments, vfs):
+    """Выполнить поддерживаемую команду. 4"""
+    if command == "ls":
+        return ls_command(arguments, vfs)
+
+    if command == "cd":
+        return cd_command(arguments, vfs)
+
+    if command == "clear":
+        return clear_command(arguments)
+
+    if command == "uname":
+        return uname_command(arguments)
+
+    if command == "tree":
+        return tree_command(arguments, vfs)
+
+    if command == "vfs-save":
+        return save_vfs_command(arguments, vfs)
+
+    print(f"{command}: команда не найдена")
+    return False
+
+
 def process_command(line, vfs=None):
-    """Обработать команду и вернуть статусы. 2-3"""
+    """Обработать команду и вернуть статусы. 2-4"""
     expanded = expand_variables(line)
     parts = expanded.split()
 
@@ -67,18 +176,8 @@ def process_command(line, vfs=None):
             return True, False
         return False, True
 
-    if command == "ls":
-        print(f"ls: аргументы = {arguments}")
-    elif command == "cd":
-        print(f"cd: аргументы = {arguments}")
-    elif command == "vfs-save":
-        success = save_vfs_command(arguments, vfs)
-        return True, success
-    else:
-        print(f"{command}: команда не найдена")
-        return True, False
-
-    return True, True
+    success = run_shell_command(command, arguments, vfs)
+    return True, success
 
 
 def execute_command(line, vfs=None):
