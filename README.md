@@ -45,12 +45,33 @@
 ```text
 configuration-management/
 ├── src/
-│   └── main.py
+│   ├── main.py
+│   └── vfs.py
 ├── tests/
-│   └── test_main.py
-├── README.md
+│   ├── test_main.py
+│   ├── test_config.py
+│   ├── test_vfs.py
+│   ├── test_commands.py
+│   └── test_extra_commands.py
+├── data/
+│   ├── vfs/
+│   ├── vfs_minimal/
+│   ├── vfs_small/
+│   └── vfs_deep/
+├── scripts/
+│   ├── startup.txt
+│   ├── startup_error.txt
+│   ├── startup_vfs.txt
+│   ├── startup_vfs_error.txt
+│   ├── startup_commands.txt
+│   ├── startup_commands_error.txt
+│   ├── startup_extra.txt
+│   ├── startup_extra_error.txt
+│   └── *.bat
+├── config.json
+├── run.bat
 ├── .gitignore
-└── run.bat
+└── README.md
 ```
 
 ## 4. Запуск программы
