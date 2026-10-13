@@ -1,4 +1,4 @@
 ls
 cd /
-ls $USERNAME
+ls
 exit
