@@ -1,0 +1,5 @@
+ls
+touch new_file.txt
+rm missing_file.txt
+ls
+exit
