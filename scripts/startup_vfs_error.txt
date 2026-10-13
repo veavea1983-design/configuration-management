@@ -1,4 +1,4 @@
 ls
-cd documents
+cd /
 vfs-save
 ls after_error
