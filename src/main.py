@@ -135,8 +135,46 @@ def tree_command(arguments, vfs):
     return True
 
 
+def touch_command(arguments, vfs):
+    """Создать пустой файл в виртуальной системе. 5"""
+    if len(arguments) != 1:
+        print("touch: требуется один аргумент — имя файла")
+        return False
+
+    if vfs is None:
+        print("touch: виртуальная система не загружена")
+        return False
+
+    try:
+        vfs.touch_file(arguments[0])
+    except (OSError, ValueError) as error:
+        print(f"touch: {error}")
+        return False
+
+    return True
+
+
+def rm_command(arguments, vfs):
+    """Удалить файл из виртуальной системы. 5"""
+    if len(arguments) != 1:
+        print("rm: требуется один аргумент — имя файла")
+        return False
+
+    if vfs is None:
+        print("rm: виртуальная система не загружена")
+        return False
+
+    try:
+        vfs.remove_file(arguments[0])
+    except (OSError, ValueError) as error:
+        print(f"rm: {error}")
+        return False
+
+    return True
+
+
 def run_shell_command(command, arguments, vfs):
-    """Выполнить поддерживаемую команду. 4"""
+    """Выполнить поддерживаемую команду. 4-5"""
     if command == "ls":
         return ls_command(arguments, vfs)
 
@@ -151,6 +189,12 @@ def run_shell_command(command, arguments, vfs):
 
     if command == "tree":
         return tree_command(arguments, vfs)
+
+    if command == "touch":
+        return touch_command(arguments, vfs)
+
+    if command == "rm":
+        return rm_command(arguments, vfs)
 
     if command == "vfs-save":
         return save_vfs_command(arguments, vfs)
