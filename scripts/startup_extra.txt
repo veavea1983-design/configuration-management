@@ -1,0 +1,11 @@
+ls
+touch new_file.txt
+ls
+cd /
+touch temporary.txt
+tree
+rm temporary.txt
+ls
+cd /
+tree
+exit
