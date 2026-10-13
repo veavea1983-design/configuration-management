@@ -1,0 +1,5 @@
+ls
+cd home
+cd missing_directory
+tree
+exit
